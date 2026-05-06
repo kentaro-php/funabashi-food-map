@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+
+<title>船橋市 食品営業許可マップ｜オープンデータ可視化</title>
+<meta name="description" content="船橋市オープンデータの食品営業許可施設1,256件を地図とインフォグラフィックで可視化。業種分布・エリア分析・許可満了予測まで、市民・事業者・自治体関係者向けの civic-tech ツール。">
+<meta name="keywords" content="船橋市,オープンデータ,食品営業許可,可視化,civic tech,飲食店,地図">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="船橋市 食品営業許可マップ">
+<meta property="og:description" content="1,256件の食品営業許可施設を地図とインフォグラフィックで可視化。常に最新のオープンデータと連動。">
+<meta property="og:image" content="og-image.png">
+<meta property="og:locale" content="ja_JP">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="船橋市 食品営業許可マップ">
+<meta name="twitter:description" content="1,256件の食品営業許可施設を可視化">
+
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css">
+
+<link rel="stylesheet" href="assets/styles.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js" defer></script>
+</head>
+<body>
+
+<div class="boot" id="boot">
+  <div class="boot-emoji">🍱</div>
+  <div class="boot-title">船橋市オープンデータを取得中</div>
+  <div class="boot-sub" id="bootSub">CKAN API経由で最新データを取得しています…</div>
+  <div class="boot-error" id="bootError"></div>
+</div>
+
+<div class="app">
+  <!-- ====== ダッシュボードビュー ====== -->
+  <div class="view active" id="dashView">
+    <header class="hero">
+      <div class="hero-meta">
+        <span class="live-dot"></span>
+        <span>LIVE · 船橋市オープンデータ</span>
+      </div>
+      <h1>食品営業許可ダッシュボード</h1>
+      <div class="hero-sub" id="heroSub">読込中…</div>
+    </header>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">総許可件数</div>
+        <div class="kpi-value" id="kpiTotal">—</div>
+        <div class="kpi-sub" id="kpiTotalSub">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">業種数</div>
+        <div class="kpi-value" id="kpiCats">—</div>
+        <div class="kpi-sub">の営業区分</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">新規許可</div>
+        <div class="kpi-value" id="kpiNew">—</div>
+        <div class="kpi-sub" id="kpiNewSub">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">継続許可</div>
+        <div class="kpi-value" id="kpiCont">—</div>
+        <div class="kpi-sub" id="kpiContSub">—</div>
+      </div>
+    </div>
+
+    <section class="section">
+      <div class="section-head">
+        <div class="section-title"><span class="section-emoji">🍽️</span>業種分布</div>
+        <div class="section-meta" id="catMeta">—</div>
+      </div>
+      <div class="chart-wrap"><canvas id="catChart"></canvas></div>
+      <div class="legend-row" id="catLegend"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div class="section-title"><span class="section-emoji">📍</span>エリア分布 TOP10</div>
+        <div class="section-meta">店舗が密集する町丁目</div>
+      </div>
+      <div class="chart-wrap tall"><canvas id="areaChart"></canvas></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div class="section-title"><span class="section-emoji">📈</span>新規許可の推移</div>
+        <div class="section-meta">月別件数</div>
+      </div>
+      <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div class="section-title"><span class="section-emoji">🏢</span>多店舗展開ランキング</div>
+        <div class="section-meta">同一法人での許可数</div>
+      </div>
+      <div class="rank-list" id="corpRank"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div class="section-title"><span class="section-emoji">⏰</span>許可満了の波</div>
+        <div class="section-meta">月別満了予定</div>
+      </div>
+      <div class="expiry-grid" id="expiryGrid"></div>
+      <div class="expiry-note" id="expiryNote"></div>
+    </section>
+
+    <footer class="attribution">
+      <div class="attribution-block">
+        <div class="attribution-label">DATA SOURCE</div>
+        <a href="https://data.bodik.jp/dataset/122041_shokuhineigyoukyokasisetu" target="_blank" rel="noopener">船橋市オープンデータ「食品営業施設一覧」</a>
+        <span>CKAN Data API経由でリアルタイム取得</span>
+      </div>
+      <div class="attribution-block">
+        <div class="attribution-label">MAP & GEOCODING</div>
+        <span>© OpenStreetMap contributors</span>
+        <span>© CARTO（タイル）</span>
+        <span>Nominatim（住所→座標変換）</span>
+      </div>
+      <div class="attribution-block">
+        <div class="attribution-label">PROJECT</div>
+        <span>非公式ツール（船橋市・公的機関とは無関係）</span>
+        <a href="https://github.com/kentaro-php/funabashi-food-map" target="_blank" rel="noopener">ソースコード（GitHub）</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ====== 検索ビュー ====== -->
+  <div class="view" id="searchView">
+    <header class="hero">
+      <h1>施設を検索</h1>
+      <div class="hero-sub">名称・住所・業態・法人名で検索</div>
+    </header>
+    <section class="section">
+      <div class="search-row">
+        <div class="search-box">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input class="search-input" id="searchInput" placeholder="例: ラーメン、本町4丁目、ファミマ" autocomplete="off">
+        </div>
+      </div>
+      <div class="result-list" id="resultList">
+        <div class="result-empty">検索キーワードを入力してください</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ====== 地図ビュー ====== -->
+  <div class="view" id="mapView">
+    <div class="map-view">
+      <div class="map-header">
+        <div class="map-search-wrap">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input class="map-search" id="mapSearchInput" placeholder="地図上で絞り込む" autocomplete="off">
+        </div>
+      </div>
+      <div id="map"></div>
+      <div class="map-status hidden" id="mapStatus">
+        <div class="spinner"></div>
+        <span id="mapStatusText">準備中…</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- タブバー -->
+<nav class="tabbar">
+  <button class="tab active" data-view="dashView">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+    ダッシュボード
+  </button>
+  <button class="tab" data-view="searchView">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    検索
+  </button>
+  <button class="tab" data-view="mapView">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    地図
+  </button>
+</nav>
+
+<!-- 詳細シート -->
+<div class="sheet-backdrop" id="sheetBackdrop"></div>
+<aside class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div id="sheetContent"></div>
+</aside>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
