@@ -5,7 +5,7 @@
  */
 
 const RESOURCE_ID = '23b029a9-6c56-4869-8cea-9a9282d50900';
-const CKAN_BASE = 'https://data.bodik.jp/api/3/action';
+const CKAN_BASE = 'https://bodik-proxy.takahashi-147.workers.dev';
 const FUNABASHI_CENTER = [35.6946, 139.9826];
 
 /* ============ カテゴリ定義 ============ */
