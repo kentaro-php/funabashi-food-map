@@ -66,7 +66,8 @@ const state = {
 
 /* ============ CKAN API ============ */
 async function ckanFetch(action, params) {
-  const url = new URL(CKAN_BASE + '/' + action);
+  const url = new URL(CKAN_BASE);
+  url.searchParams.set('action', action);
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== null) url.searchParams.set(k, v);
   });
