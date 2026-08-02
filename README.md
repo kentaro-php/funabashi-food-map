@@ -87,12 +87,7 @@ funabashi-food-map/
 - **位置情報の精度**: 町丁目レベルの代表座標で表示。番地レベルの正確な位置ではない
 - **県内一円町**: 移動販売など特定住所を持たない事業者（16件）は地図対象外
 - **ジオコーディング**: 初回のみ Nominatim 経由で町丁目座標を取得（約1〜2分）。2回目以降は localStorage キャッシュで瞬時表示
-
-## 関連プロジェクト
-
-- [PolitiWatch Japan](https://github.com/kentaro-php/) - 国会議員活動可視化
-- [GiKAI Research](https://github.com/kentaro-php/) - 市議会AI調査支援
-
+  
 ## ライセンス
 
 MIT License
@@ -100,7 +95,3 @@ MIT License
 ## 注意
 
 本サイトは船橋市・公的機関とは無関係の **非公式ツール** です。データの正確性については、必ず船橋市公式の[食品営業施設一覧](https://www.city.funabashi.lg.jp/kenkou/eisei/004/p064870.html)をご確認ください。
-
-## Author
-
-[@kentaro-php](https://github.com/kentaro-php) (DSパートナーズ・インベストメント株式会社)
